@@ -45,7 +45,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Source: "focuserlist PrimaLuceLab.txt"; DestDir: "{app}\Miscellaneous Files"; Flags: ignoreversion
 Source: "libSestoSenso\Release\libSestoSenso.dll"; DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion
 Source: "SestoSenso.ui"; DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion
-Source: "Calibrate.ui"; DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion
+Source: "SestoCalibrate.ui"; DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion
 Source: "PrimaLuceLab.png"; DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 ; msgBox('Do you want to install MyProg.exe to ' + ExtractFilePath(CurrentFileName) + '?', mbConfirmation, MB_YESNO)

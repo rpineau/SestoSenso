@@ -2,7 +2,7 @@
 
 mkdir -p ROOT/tmp/SestoSenso_X2/
 cp "../SestoSenso.ui" ROOT/tmp/SestoSenso_X2/
-cp "../Calibrate.ui" ROOT/tmp/SestoSenso_X2/
+cp "../SestoCalibrate.ui" ROOT/tmp/SestoSenso_X2/
 cp "../PrimaLuceLab.png" ROOT/tmp/SestoSenso_X2/
 cp "../focuserlist PrimaLuceLab.txt" ROOT/tmp/SestoSenso_X2/
 cp "../build/Release/libSestoSenso.dylib" ROOT/tmp/SestoSenso_X2/

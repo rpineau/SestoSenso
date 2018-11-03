@@ -461,7 +461,7 @@ int X2Focuser::doCalibrate(bool bPressedOK)
     bPressedOK = false;
     if (NULL == ui)
         return ERR_POINTER;
-    nErr = ui->loadUserInterface("Calibrate.ui", deviceType(), m_nPrivateMulitInstanceIndex);
+    nErr = ui->loadUserInterface("SestoCalibrate.ui", deviceType(), m_nPrivateMulitInstanceIndex);
     if (nErr)
         return nErr;
 

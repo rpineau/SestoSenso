@@ -26,7 +26,7 @@ fi
 
 cp "./focuserlist PrimaLuceLab.txt" "$TheSkyX_Path/Resources/Common/Miscellaneous Files/"
 cp "./SestoSenso.ui" "$TheSkyX_Path/Resources/Common/PlugInsARM32/FocuserPlugIns/"
-cp "./Calibrate.ui" "$TheSkyX_Path/Resources/Common/PlugInsARM32/FocuserPlugIns/"
+cp "./SestoCalibrate.ui" "$TheSkyX_Path/Resources/Common/PlugInsARM32/FocuserPlugIns/"
 cp "./PrimaLuceLab.png" "$TheSkyX_Path/Resources/Common/PlugInsARM32/FocuserPlugIns/"
 cp "./libSestoSenso.so" "$TheSkyX_Path/Resources/Common/PlugInsARM32/FocuserPlugIns/"
 
@@ -34,7 +34,7 @@ app_owner=`/usr/bin/stat -c "%u" "$TheSkyX_Path" | xargs id -n -u`
 if [ ! -z "$app_owner" ]; then
 	chown $app_owner "$TheSkyX_Path/Resources/Common/Miscellaneous Files/focuserlist PrimaLuceLab.txt"
 	chown $app_owner "$TheSkyX_Path/Resources/Common/PlugInsARM32/FocuserPlugIns/SestoSenso.ui"
-	chown $app_owner "$TheSkyX_Path/Resources/Common/PlugInsARM32/FocuserPlugIns/Calibrate.ui"
+	chown $app_owner "$TheSkyX_Path/Resources/Common/PlugInsARM32/FocuserPlugIns/SestoCalibrate.ui"
 	chown $app_owner "$TheSkyX_Path/Resources/Common/PlugInsARM32/FocuserPlugIns/PrimaLuceLab.png"
 	chown $app_owner "$TheSkyX_Path/Resources/Common/PlugInsARM32/FocuserPlugIns/libSestoSenso.so"
 fi
