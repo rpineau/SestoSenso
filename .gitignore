@@ -11,3 +11,4 @@ Release
 *.zip
 *.VC.db
 *.exe
+*.VC.*
