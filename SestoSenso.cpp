@@ -754,10 +754,15 @@ int CSestoSenso::readResponse(char *pszRespBuffer, int nBufferLen)
             break;
         }
         ulTotalBytesRead += ulBytesRead;
+        // special case
+        if (*pszBufPtr == '!') {
+            pszBufPtr++;
+            break;
+        }
     } while (*pszBufPtr++ != '\n' && ulTotalBytesRead < nBufferLen );
 
     if(ulTotalBytesRead)
-        *(pszBufPtr-1) = 0; //remove the \n
+        *(pszBufPtr-1) = 0; //remove the \n or the !
 
     return nErr;
 }
