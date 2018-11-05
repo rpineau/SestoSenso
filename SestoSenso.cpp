@@ -317,7 +317,7 @@ int CSestoSenso::getFirmwareVersion(char *pszVersion, int nStrMaxLen)
     if(!m_bIsConnected)
         return NOT_CONNECTED;
 
-    nErr = SestoSensoCommand("#QF!", szResp, SERIAL_BUFFER_SIZE, 1);
+    nErr = SestoSensoCommand("#QF!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
         return nErr;
 
@@ -339,7 +339,7 @@ int CSestoSenso::getDeviceName(char *pzName, int nStrMaxLen)
     if(!m_bIsConnected)
         return NOT_CONNECTED;
 
-    nErr = SestoSensoCommand("#QN!", szResp, SERIAL_BUFFER_SIZE, 1);
+    nErr = SestoSensoCommand("#QN!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
         return nErr;
 
@@ -680,7 +680,7 @@ int CSestoSenso::SestoSensoCommand(const char *pszszCmd, char *pszResult, int nR
     }
 
     if(pszResult) {
-        for(i =0; i<nbResults; i++) {
+        for(i = 0; i<nbResults; i++) {
             // read response
             nErr = readResponse(szResp, SERIAL_BUFFER_SIZE);
             if(nErr){
@@ -700,16 +700,19 @@ int CSestoSenso::SestoSensoCommand(const char *pszszCmd, char *pszResult, int nR
             fprintf(Logfile, "[%s] CSestoSenso::SestoSensoCommand response \"%s\"\n", timestamp, szResp);
             fflush(Logfile);
 #endif
-            // printf("Got response : %s\n",resp);
             sResult += szResp;
-#ifdef SESTO_DEBUG
-            ltime = time(NULL);
-            timestamp = asctime(localtime(&ltime));
-            timestamp[strlen(timestamp) - 1] = 0;
-            fprintf(Logfile, "[%s] CSestoSenso::SestoSensoCommand response copied to pszResult : \"%s\"\n", timestamp, pszResult);
-            fflush(Logfile);
-#endif
         }
+
+        // copy response(s) to result string
+        strncpy(pszResult, sResult.c_str(),nResultMaxLen);
+#ifdef SESTO_DEBUG
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] CSestoSenso::SestoSensoCommand response copied to pszResult : \"%s\"\n", timestamp, pszResult);
+        fflush(Logfile);
+#endif
+
     }
 
     strncpy(pszResult, sResult.c_str(), nResultMaxLen);
@@ -759,7 +762,7 @@ int CSestoSenso::readResponse(char *pszRespBuffer, int nBufferLen)
             pszBufPtr++;
             break;
         }
-    } while (*pszBufPtr++ != '\n' && ulTotalBytesRead < nBufferLen );
+    } while (*pszBufPtr++ != '\r' && ulTotalBytesRead < nBufferLen );
 
     if(ulTotalBytesRead)
         *(pszBufPtr-1) = 0; //remove the \n or the !
@@ -801,7 +804,7 @@ int CSestoSenso::getCurrentValues(void)
     if(!m_bIsConnected)
         return NOT_CONNECTED;
 
-    nErr = SestoSensoCommand("#GC!", szResp, SERIAL_BUFFER_SIZE, 1);
+    nErr = SestoSensoCommand("#GC!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
         return nErr;
 
@@ -829,7 +832,7 @@ int CSestoSenso::getSpeedValues(void)
     if(!m_bIsConnected)
         return NOT_CONNECTED;
 
-    nErr = SestoSensoCommand("#GS!", szResp, SERIAL_BUFFER_SIZE, 1);
+    nErr = SestoSensoCommand("#GS!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
         return nErr;
 
