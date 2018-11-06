@@ -152,7 +152,7 @@ int CSestoSenso::gotoPosition(int nPos)
     if ( nPos < m_nMinPosLimit || nPos > m_nMaxPosLimit)
         return ERR_LIMITSEXCEEDED;
 
-#ifdef SESTO_DEBUG
+#if defined SESTO_DEBUG && SESTO_DEBUG >= 2
     ltime = time(NULL);
     timestamp = asctime(localtime(&ltime));
     timestamp[strlen(timestamp) - 1] = 0;
@@ -267,7 +267,7 @@ int CSestoSenso::moveRelativeToPosision(int nSteps)
     if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
 
-#ifdef SESTO_DEBUG
+#if defined SESTO_DEBUG && SESTO_DEBUG >= 2
     ltime = time(NULL);
     timestamp = asctime(localtime(&ltime));
     timestamp[strlen(timestamp) - 1] = 0;
@@ -392,7 +392,7 @@ int CSestoSenso::getPosition(int &nPosition)
 }
 
 
-int CSestoSenso::syncMotorPosition(int nPos)
+int CSestoSenso::syncMotorPosition(const int &nPos)
 {
     int nErr = SENSO_OK;
     char szCmd[SERIAL_BUFFER_SIZE];
@@ -418,6 +418,7 @@ int CSestoSenso::getMaxPosLimit(int &nLimit)
 {
     int nErr = SENSO_OK;
     char szResp[SERIAL_BUFFER_SIZE];
+    std::vector<std::string> vFieldsData;
 
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
@@ -427,18 +428,24 @@ int CSestoSenso::getMaxPosLimit(int &nLimit)
         return nErr;
 
     // convert response
-    nLimit = atoi(szResp);
-    m_nMaxPosLimit = nLimit;
+    nErr = parseFields(szResp, vFieldsData, ';');
+    if(nErr)
+        return nErr;
+    if(vFieldsData.size()>=2) {
+        nLimit = atoi(vFieldsData[1].c_str());
+        m_nMaxPosLimit = nLimit;
+    }
+    else
+        nErr = ERR_CMDFAILED;
+
     return nErr;
 }
 
-int CSestoSenso::setMaxPosLimit(int nLimit)
+int CSestoSenso::setMaxPosLimit(const int &nLimit)
 {
     int nErr = SENSO_OK;
     char szCmd[SERIAL_BUFFER_SIZE];
     char szResp[SERIAL_BUFFER_SIZE];
-
-    nLimit = m_nMaxPosLimit;
 
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
@@ -459,6 +466,7 @@ int CSestoSenso::getMinPosLimit(int &nLimit)
 {
     int nErr = SENSO_OK;
     char szResp[SERIAL_BUFFER_SIZE];
+    std::vector<std::string> vFieldsData;
 
     nLimit = m_nMinPosLimit;
 
@@ -468,14 +476,21 @@ int CSestoSenso::getMinPosLimit(int &nLimit)
     nErr = SestoSensoCommand("#Qm!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
         return nErr;
-
     // convert response
-    nLimit = atoi(szResp);
-    m_nMinPosLimit = nLimit;
+    nErr = parseFields(szResp, vFieldsData, ';');
+    if(nErr)
+        return nErr;
+    if(vFieldsData.size()>=2) {
+        nLimit = atoi(vFieldsData[1].c_str());
+        m_nMinPosLimit = nLimit;
+    }
+    else
+        nErr = ERR_CMDFAILED;
+
     return nErr;
 }
 
-int CSestoSenso::setMinPosLimit(int nLimit)
+int CSestoSenso::setMinPosLimit(const int &nLimit)
 {
     int nErr = SENSO_OK;
     char szCmd[SERIAL_BUFFER_SIZE];
@@ -521,7 +536,7 @@ void CSestoSenso::getHoldCurrent(int &nValue)
     nValue = m_SensoParams.nHoldCurrent;
 }
 
-void CSestoSenso::setHoldCurrent(int nValue)
+void CSestoSenso::setHoldCurrent(const int &nValue)
 {
     m_SensoParams.nHoldCurrent = nValue;
 }
@@ -531,7 +546,7 @@ void CSestoSenso::getRunCurrent(int &nValue)
     nValue = m_SensoParams.nRunCurrent;
 }
 
-void CSestoSenso::setRunCurrent(int nValue)
+void CSestoSenso::setRunCurrent(const int &nValue)
 {
     m_SensoParams.nRunCurrent = nValue;
 }
@@ -541,7 +556,7 @@ void CSestoSenso::getAccCurrent(int &nValue)
     nValue = m_SensoParams.nAccCurrent;
 }
 
-void CSestoSenso::setAccCurrent(int nValue)
+void CSestoSenso::setAccCurrent(const int &nValue)
 {
     m_SensoParams.nAccCurrent = nValue;
 }
@@ -551,7 +566,7 @@ void CSestoSenso::getDecCurrent(int &nValue)
     nValue = m_SensoParams.nDecCurrent;
 }
 
-void CSestoSenso::setDecCurrent(int nValue)
+void CSestoSenso::setDecCurrent(const int &nValue)
 {
     m_SensoParams.nDecCurrent = nValue;
 }
@@ -562,7 +577,7 @@ void CSestoSenso::getRunSpeed(int &nValue)
     nValue = m_SensoParams.nRunSpeed;
 }
 
-void CSestoSenso::setRunSpeed(int nValue)
+void CSestoSenso::setRunSpeed(const int &nValue)
 {
     m_SensoParams.nRunSpeed = nValue;
 }
@@ -572,7 +587,7 @@ void CSestoSenso::getAccSpeed(int &nValue)
     nValue = m_SensoParams.nAccSpeed;
 }
 
-void CSestoSenso::setAccSpeed(int nValue)
+void CSestoSenso::setAccSpeed(const int &nValue)
 {
     m_SensoParams.nAccSpeed = nValue;
 }
@@ -582,7 +597,7 @@ void CSestoSenso::getDecSpeed(int &nValue)
     nValue = m_SensoParams.nDecSpeed;
 }
 
-void CSestoSenso::setDecSpeed(int nValue)
+void CSestoSenso::setDecSpeed(const int &nValue)
 {
     m_SensoParams.nDecSpeed = nValue;
 }
@@ -632,7 +647,7 @@ int CSestoSenso::resetToDefault(void)
     return nErr;
 }
 
-int CSestoSenso::setLockMode(bool bLock)
+int CSestoSenso::setLockMode(const bool &bLock)
 {
     int nErr = SENSO_OK;
     char szResp[SERIAL_BUFFER_SIZE];
@@ -665,7 +680,7 @@ int CSestoSenso::SestoSensoCommand(const char *pszszCmd, char *pszResult, int nR
 		return ERR_COMMNOLINK;
 
     m_pSerx->purgeTxRx();
-#ifdef SESTO_DEBUG
+#if defined SESTO_DEBUG && SESTO_DEBUG >= 3
 	ltime = time(NULL);
 	timestamp = asctime(localtime(&ltime));
 	timestamp[strlen(timestamp) - 1] = 0;
@@ -684,7 +699,7 @@ int CSestoSenso::SestoSensoCommand(const char *pszszCmd, char *pszResult, int nR
             // read response
             nErr = readResponse(szResp, SERIAL_BUFFER_SIZE);
             if(nErr){
-#ifdef SESTO_DEBUG
+#if defined SESTO_DEBUG && SESTO_DEBUG >= 2
                 ltime = time(NULL);
                 timestamp = asctime(localtime(&ltime));
                 timestamp[strlen(timestamp) - 1] = 0;
@@ -693,7 +708,7 @@ int CSestoSenso::SestoSensoCommand(const char *pszszCmd, char *pszResult, int nR
 #endif
                 return nErr;
             }
-#ifdef SESTO_DEBUG
+#if defined SESTO_DEBUG && SESTO_DEBUG >= 3
             ltime = time(NULL);
             timestamp = asctime(localtime(&ltime));
             timestamp[strlen(timestamp) - 1] = 0;
@@ -705,14 +720,6 @@ int CSestoSenso::SestoSensoCommand(const char *pszszCmd, char *pszResult, int nR
 
         // copy response(s) to result string
         strncpy(pszResult, sResult.c_str(),nResultMaxLen);
-#ifdef SESTO_DEBUG
-        ltime = time(NULL);
-        timestamp = asctime(localtime(&ltime));
-        timestamp[strlen(timestamp) - 1] = 0;
-        fprintf(Logfile, "[%s] CSestoSenso::SestoSensoCommand response copied to pszResult : \"%s\"\n", timestamp, pszResult);
-        fflush(Logfile);
-#endif
-
     }
 
     strncpy(pszResult, sResult.c_str(), nResultMaxLen);
@@ -735,7 +742,7 @@ int CSestoSenso::readResponse(char *pszRespBuffer, int nBufferLen)
     do {
         nErr = m_pSerx->readFile(pszBufPtr, 1, ulBytesRead, MAX_TIMEOUT);
         if(nErr) {
-#ifdef SESTO_DEBUG
+#if defined SESTO_DEBUG && SESTO_DEBUG >= 2
             ltime = time(NULL);
             timestamp = asctime(localtime(&ltime));
             timestamp[strlen(timestamp) - 1] = 0;
@@ -746,7 +753,7 @@ int CSestoSenso::readResponse(char *pszRespBuffer, int nBufferLen)
         }
 
         if (ulBytesRead !=1) {// timeout
-#ifdef SESTO_DEBUG
+#if defined SESTO_DEBUG && SESTO_DEBUG >= 2
 			ltime = time(NULL);
 			timestamp = asctime(localtime(&ltime));
 			timestamp[strlen(timestamp) - 1] = 0;

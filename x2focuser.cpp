@@ -132,13 +132,13 @@ void X2Focuser::deviceInfoDetailedDescription(BasicStringInterface& str) const
 
 void X2Focuser::deviceInfoFirmwareVersion(BasicStringInterface& str)				
 {
-    X2MutexLocker ml(GetMutex());
 
     if(!m_bLinked) {
         str="";
     }
     else {
     // get firmware version
+        X2MutexLocker ml(GetMutex());
         char cFirmware[SERIAL_BUFFER_SIZE];
         m_SestoSenso.getFirmwareVersion(cFirmware, SERIAL_BUFFER_SIZE);
         str = cFirmware;
@@ -154,19 +154,19 @@ void X2Focuser::deviceInfoModel(BasicStringInterface& str)
 int	X2Focuser::establishLink(void)
 {
     char szPort[DRIVER_MAX_STRING];
-    int err;
+    int nErr;
 
     X2MutexLocker ml(GetMutex());
     // get serial port device name
     portNameOnToCharPtr(szPort,DRIVER_MAX_STRING);
-    err = m_SestoSenso.Connect(szPort);
-    if(err)
+    nErr = m_SestoSenso.Connect(szPort);
+    if(nErr)
         m_bLinked = false;
     else
         m_bLinked = true;
 
 
-    return err;
+    return nErr;
 }
 
 int	X2Focuser::terminateLink(void)
@@ -580,41 +580,52 @@ int X2Focuser::doCalibrateialogEvents(X2GUIExchangeInterface* uiex, const char* 
 #pragma mark - FocuserGotoInterface2
 int	X2Focuser::focPosition(int& nPosition)
 {
-    int err;
+    int nErr;
 
     if(!m_bLinked)
         return NOT_CONNECTED;
 
     X2MutexLocker ml(GetMutex());
-
-    err = m_SestoSenso.getPosition(nPosition);
+    nErr = m_SestoSenso.getPosition(nPosition);
     m_nPosition = nPosition;
-    return err;
+
+    return nErr;
 }
 
 int	X2Focuser::focMinimumLimit(int& nMinLimit) 		
 {
     int nErr = SB_OK;
+
+    X2MutexLocker ml(GetMutex());
     nErr = m_SestoSenso.getMinPosLimit(nMinLimit);
+
     return nErr;
 }
 
 int	X2Focuser::focMaximumLimit(int& nPosLimit)			
 {
     int nErr = SB_OK;
-    nErr = m_SestoSenso.getMaxPosLimit(nPosLimit);
-    return nErr;
-}
-
-int	X2Focuser::focAbort()								
-{   int err;
 
     if(!m_bLinked)
         return NOT_CONNECTED;
 
     X2MutexLocker ml(GetMutex());
-    err = m_SestoSenso.haltFocuser();
-    return err;
+    nErr = m_SestoSenso.getMaxPosLimit(nPosLimit);
+
+    return nErr;
+}
+
+int	X2Focuser::focAbort()								
+{
+    int nErr;
+
+    if(!m_bLinked)
+        return NOT_CONNECTED;
+
+    X2MutexLocker ml(GetMutex());
+    nErr = m_SestoSenso.haltFocuser();
+
+    return nErr;
 }
 
 int	X2Focuser::startFocGoto(const int& nRelativeOffset)	
@@ -624,33 +635,34 @@ int	X2Focuser::startFocGoto(const int& nRelativeOffset)
 
     X2MutexLocker ml(GetMutex());
     m_SestoSenso.moveRelativeToPosision(nRelativeOffset);
+
     return SB_OK;
 }
 
 int	X2Focuser::isCompleteFocGoto(bool& bComplete) const
 {
-    int err;
+    int nErr;
 
     if(!m_bLinked)
         return NOT_CONNECTED;
 
     X2Focuser* pMe = (X2Focuser*)this;
     X2MutexLocker ml(pMe->GetMutex());
+    nErr = pMe->m_SestoSenso.isGoToComplete(bComplete);
 
-    err = pMe->m_SestoSenso.isGoToComplete(bComplete);
-
-    return err;
+    return nErr;
 }
 
 int	X2Focuser::endFocGoto(void)
 {
-    int err;
+    int nErr;
     if(!m_bLinked)
         return NOT_CONNECTED;
 
     X2MutexLocker ml(GetMutex());
-    err = m_SestoSenso.getPosition(m_nPosition);
-    return err;
+    nErr = m_SestoSenso.getPosition(m_nPosition);
+
+    return nErr;
 }
 
 int X2Focuser::amountCountFocGoto(void) const					
@@ -683,12 +695,12 @@ int X2Focuser::focTemperature(double &dTemperature)
 {
     int nErr = SB_OK;
 
-    X2MutexLocker ml(GetMutex());
-
     if(!m_bLinked) {
         dTemperature = -100.0;
         return NOT_CONNECTED;
     }
+
+    X2MutexLocker ml(GetMutex());
 
     // Taken from Richard's Robofocus plugin code.
     // this prevent us from asking the temperature too often

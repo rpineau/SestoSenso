@@ -22,7 +22,7 @@
 #include "../../licensedinterfaces/serxinterface.h"
 #include "../../licensedinterfaces/loggerinterface.h"
 
-#define SESTO_DEBUG 2
+#define SESTO_DEBUG 3
 
 #define MAX_TIMEOUT 1000
 #define SERIAL_BUFFER_SIZE 256
@@ -76,40 +76,40 @@ public:
 
     int         getPosition(int &nPosition);
 
-    int         syncMotorPosition(int nPos);
+    int         syncMotorPosition(const int &nPos);
 
     int         getMinPosLimit(int &nLimit);
-    int         setMinPosLimit(int nLimit);
+    int         setMinPosLimit(const int &nLimit);
     int         getMaxPosLimit(int &nLimit);
-    int         setMaxPosLimit(int nLimit);
+    int         setMaxPosLimit(const int &nLimit);
     int         setCurrentPosAsMax();
     
     void        getHoldCurrent(int &nValue);
-    void        setHoldCurrent(int nValue);
+    void        setHoldCurrent(const int &nValue);
 
     void        getRunCurrent(int &nValue);
-    void        setRunCurrent(int nValue);
+    void        setRunCurrent(const int &nValue);
 
     void        getAccCurrent(int &nValue);
-    void        setAccCurrent(int nValue);
+    void        setAccCurrent(const int &nValue);
 
     void        getDecCurrent(int &nValue);
-    void        setDecCurrent(int nValue);
+    void        setDecCurrent(const int &nValue);
 
     void        getRunSpeed(int &nValue);
-    void        setRunSpeed(int nValue);
+    void        setRunSpeed(const int &nValue);
 
     void        getAccSpeed(int &nValue);
-    void        setAccSpeed(int nValue);
+    void        setAccSpeed(const int &nValue);
 
     void        getDecSpeed(int &nValue);
-    void        setDecSpeed(int nValue);
+    void        setDecSpeed(const int &nValue);
 
     int         saveParams(void);
     int         saveParamsToMemory(void);
     int         resetToDefault(void);
 
-    int         setLockMode(bool bLock);
+    int         setLockMode(const bool &bLock);
 
 protected:
 
