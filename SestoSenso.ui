@@ -560,7 +560,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>New position :</string>
+        <string>Sync to position :</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
