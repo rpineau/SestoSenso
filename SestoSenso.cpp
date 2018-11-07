@@ -157,16 +157,18 @@ int CSestoSenso::gotoPosition(int nPos)
         return ERR_CMD_IN_PROGRESS_FOC;
     }
 
-    if ( nPos < m_nMinPosLimit || nPos > m_nMaxPosLimit)
-        return ERR_LIMITSEXCEEDED;
-
 #if defined SESTO_DEBUG && SESTO_DEBUG >= 2
     ltime = time(NULL);
     timestamp = asctime(localtime(&ltime));
     timestamp[strlen(timestamp) - 1] = 0;
     fprintf(Logfile, "[%s] [CSestoSenso::gotoPosition] moving to %d\n", timestamp, nPos);
+    fprintf(Logfile, "[%s] [CSestoSenso::gotoPosition] m_nMinPosLimit =  %d\n", timestamp, m_nMinPosLimit);
+    fprintf(Logfile, "[%s] [CSestoSenso::gotoPosition] m_nMaxPosLimit = %d\n", timestamp, m_nMaxPosLimit);
     fflush(Logfile);
 #endif
+
+    if ( nPos < m_nMinPosLimit || nPos > m_nMaxPosLimit)
+        return ERR_LIMITSEXCEEDED;
 
     sprintf(szCmd,"#GT%d!", nPos);
     nErr = SestoSensoCommand(szCmd, szResp, SERIAL_BUFFER_SIZE, 1);
@@ -176,6 +178,13 @@ int CSestoSenso::gotoPosition(int nPos)
     m_bMoving = true;
     if(!strstr(szResp, "ok")) {
         m_nCurPos = atoi(szResp);
+#if defined SESTO_DEBUG && SESTO_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CSestoSenso::gotoPosition] m_nCurPos = %d\n", timestamp, m_nCurPos);
+        fflush(Logfile);
+#endif
     }
 
     m_nTargetPos = nPos;
@@ -442,8 +451,23 @@ int CSestoSenso::getPosition(int &nPosition)
 	if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
 
+#if defined SESTO_DEBUG && SESTO_DEBUG >= 2
+    ltime = time(NULL);
+    timestamp = asctime(localtime(&ltime));
+    timestamp[strlen(timestamp) - 1] = 0;
+    fprintf(Logfile, "[%s] [CSestoSenso::getPosition] m_bMoving = %s \n", timestamp, m_bMoving?"Yes":"No");
+    fflush(Logfile);
+#endif
+
     if(m_bMoving) {
         nPosition = m_nCurPos;
+#if defined SESTO_DEBUG && SESTO_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CSestoSenso::getPosition] [Moving] m_nCurPos = %d \n", timestamp, m_nCurPos);
+        fflush(Logfile);
+#endif
         return nErr;
     }
 
@@ -454,6 +478,14 @@ int CSestoSenso::getPosition(int &nPosition)
     // convert response
     nPosition = atoi(szResp);
     m_nCurPos = nPosition;
+
+#if defined SESTO_DEBUG && SESTO_DEBUG >= 2
+    ltime = time(NULL);
+    timestamp = asctime(localtime(&ltime));
+    timestamp[strlen(timestamp) - 1] = 0;
+    fprintf(Logfile, "[%s] [CSestoSenso::getPosition] [NOT Moving] m_nCurPos = %d \n", timestamp, m_nCurPos);
+    fflush(Logfile);
+#endif
     return nErr;
 }
 
@@ -802,6 +834,7 @@ int CSestoSenso::SestoSensoCommand(const char *pszszCmd, char *pszResult, int nR
 		return ERR_COMMNOLINK;
 
     m_pSerx->purgeTxRx();
+
 #if defined SESTO_DEBUG && SESTO_DEBUG >= 3
 	ltime = time(NULL);
 	timestamp = asctime(localtime(&ltime));
@@ -809,6 +842,7 @@ int CSestoSenso::SestoSensoCommand(const char *pszszCmd, char *pszResult, int nR
 	fprintf(Logfile, "[%s] CSestoSenso::SestoSensoCommand Sending %s\n", timestamp, pszszCmd);
 	fflush(Logfile);
 #endif
+
     nErr = m_pSerx->writeFile((void *)pszszCmd, strlen(pszszCmd), ulBytesWrite);
     m_pSerx->flushTx();
 

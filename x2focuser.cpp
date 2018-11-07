@@ -246,7 +246,7 @@ int	X2Focuser::execModalSettingsDialog(void)
         m_SestoSenso.getMinPosLimit(nTmp);
         dx->setPropertyInt("minPos", "value", nTmp);
 
-        m_SestoSenso.getMinPosLimit(nTmp);
+        m_SestoSenso.getMaxPosLimit(nTmp);
         dx->setPropertyInt("maxPos", "value", nTmp);
 
         dx->setPropertyInt("newPos", "value", m_nPosition);
@@ -354,6 +354,13 @@ int X2Focuser::doMainDialogEvents(X2GUIExchangeInterface* uiex, const char* pszE
         uiex->setPropertyInt("decelerationSpeed", "value", 50);
     }
 
+    else if (!strcmp(pszEvent, "on_pushButton_4_clicked")) {
+        m_SestoSenso.getPosition(m_nPosition);
+        snprintf(szTmp, LOG_BUFFER_SIZE, "%d", m_nPosition);
+        uiex->setPropertyString("currentPos", "text", szTmp);
+        m_SestoSenso.setMaxPosLimit(m_nPosition);
+    }
+
     else if (!strcmp(pszEvent, "on_pushButton_5_clicked")) {
         uiex->propertyInt("minPos", "value", nTmp);
         m_SestoSenso.setMinPosLimit(nTmp);
@@ -368,12 +375,31 @@ int X2Focuser::doMainDialogEvents(X2GUIExchangeInterface* uiex, const char* pszE
         uiex->propertyInt("newPos", "value", nTmp);
         m_SestoSenso.syncMotorPosition(nTmp);
         snprintf(szTmp, LOG_BUFFER_SIZE, "%d", nTmp);
-        uiex->setPropertyString("currentPos", "test", szTmp);
+        uiex->setPropertyString("currentPos", "text", szTmp);
+        m_SestoSenso.getPosition(m_nPosition);
     }
 
-    else if (!strcmp(pszEvent, "on_pushButton_4_clicked")) {
-        uiex->propertyString("currentPos","text", szTmp, LOG_BUFFER_SIZE);
-        m_SestoSenso.setMaxPosLimit(atoi(szTmp));
+    else if (!strcmp(pszEvent, "on_pushButton_8_clicked")) {
+        // read current values (I assume they are in mA).
+        uiex->propertyInt("accelerationCurrent", "value", nTmp);
+        m_SestoSenso.setAccCurrent(nTmp);
+        uiex->propertyInt("runCurrent", "value", nTmp);
+        m_SestoSenso.setRunCurrent(nTmp);
+        uiex->propertyInt("decCurrent", "value", nTmp);
+        m_SestoSenso.setDecCurrent(nTmp);
+        uiex->propertyInt("holdCurrent", "value", nTmp);
+        m_SestoSenso.setHoldCurrent(nTmp);
+        // read speed values
+        uiex->propertyInt("accelerationSpeed", "value", nTmp);
+        m_SestoSenso.setAccSpeed(nTmp);
+        uiex->propertyInt("runSpeed", "value", nTmp);
+        m_SestoSenso.setRunSpeed(nTmp);
+        uiex->propertyInt("decelerationSpeed", "value", nTmp);
+        m_SestoSenso.setDecSpeed(nTmp);
+        // write new values
+        nErr = m_SestoSenso.saveParams();
+        // premanentely save to memory
+        nErr = m_SestoSenso.saveParamsToMemory();
     }
 
     else if (!strcmp(pszEvent, "on_pushButton_9_clicked")) {
@@ -408,33 +434,10 @@ int X2Focuser::doMainDialogEvents(X2GUIExchangeInterface* uiex, const char* pszE
         m_SestoSenso.getMinPosLimit(nTmp);
         uiex->setPropertyInt("minPos", "value", nTmp);
 
-        m_SestoSenso.getMinPosLimit(nTmp);
+        m_SestoSenso.getMaxPosLimit(nTmp);
         uiex->setPropertyInt("maxPos", "value", nTmp);
 
         uiex->setPropertyInt("newPos", "value", m_nPosition);
-    }
-
-    else if (!strcmp(pszEvent, "on_pushButton_8_clicked")) {
-        // read current values (I assume they are in mA).
-        uiex->propertyInt("accelerationCurrent", "value", nTmp);
-        m_SestoSenso.setAccCurrent(nTmp);
-        uiex->propertyInt("runCurrent", "value", nTmp);
-        m_SestoSenso.setRunCurrent(nTmp);
-        uiex->propertyInt("decCurrent", "value", nTmp);
-        m_SestoSenso.setDecCurrent(nTmp);
-        uiex->propertyInt("holdCurrent", "value", nTmp);
-        m_SestoSenso.setHoldCurrent(nTmp);
-        // read speed values
-        uiex->propertyInt("accelerationSpeed", "value", nTmp);
-        m_SestoSenso.setAccSpeed(nTmp);
-        uiex->propertyInt("runSpeed", "value", nTmp);
-        m_SestoSenso.setRunSpeed(nTmp);
-        uiex->propertyInt("decelerationSpeed", "value", nTmp);
-        m_SestoSenso.setDecSpeed(nTmp);
-        // write new values
-        nErr = m_SestoSenso.saveParams();
-        // premanentely save to memory
-        nErr = m_SestoSenso.saveParamsToMemory();
     }
 
     else if (!strcmp(pszEvent, "on_pushButton_10_clicked")) {
@@ -450,7 +453,7 @@ int X2Focuser::doMainDialogEvents(X2GUIExchangeInterface* uiex, const char* pszE
         m_SestoSenso.getMinPosLimit(nTmp);
         uiex->setPropertyInt("minPos", "value", nTmp);
 
-        m_SestoSenso.getMinPosLimit(nTmp);
+        m_SestoSenso.getMaxPosLimit(nTmp);
         uiex->setPropertyInt("maxPos", "value", nTmp);
 
         uiex->setPropertyInt("newPos", "value", m_nPosition);
