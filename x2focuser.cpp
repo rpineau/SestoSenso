@@ -214,7 +214,10 @@ int	X2Focuser::execModalSettingsDialog(void)
 
 	// set controls values
     if(m_bLinked) {
+        m_SestoSenso.readParams();
+
         setMainDialogControlState(dx, true);
+
         m_SestoSenso.getAccCurrent(nTmp);
         dx->setPropertyInt("accelerationCurrent", "value", nTmp);
 
@@ -236,8 +239,7 @@ int	X2Focuser::execModalSettingsDialog(void)
         m_SestoSenso.getDecSpeed(nTmp);
         dx->setPropertyInt("decelerationSpeed", "value", nTmp);
 
-        m_SestoSenso.getPosition(nTmp);
-        m_nPosition = nTmp;
+        m_SestoSenso.getPosition(m_nPosition);
         snprintf(szTmp, LOG_BUFFER_SIZE, "%d", m_nPosition);
         dx->setPropertyString("currentPos", "text", szTmp);
 
@@ -413,12 +415,45 @@ int X2Focuser::doMainDialogEvents(X2GUIExchangeInterface* uiex, const char* pszE
     }
 
     else if (!strcmp(pszEvent, "on_pushButton_8_clicked")) {
-        m_SestoSenso.saveParamsToMemory();
+        // read current values (I assume they are in mA).
+        uiex->propertyInt("accelerationCurrent", "value", nTmp);
+        m_SestoSenso.setAccCurrent(nTmp);
+        uiex->propertyInt("runCurrent", "value", nTmp);
+        m_SestoSenso.setRunCurrent(nTmp);
+        uiex->propertyInt("decCurrent", "value", nTmp);
+        m_SestoSenso.setDecCurrent(nTmp);
+        uiex->propertyInt("holdCurrent", "value", nTmp);
+        m_SestoSenso.setHoldCurrent(nTmp);
+        // read speed values
+        uiex->propertyInt("accelerationSpeed", "value", nTmp);
+        m_SestoSenso.setAccSpeed(nTmp);
+        uiex->propertyInt("runSpeed", "value", nTmp);
+        m_SestoSenso.setRunSpeed(nTmp);
+        uiex->propertyInt("decelerationSpeed", "value", nTmp);
+        m_SestoSenso.setDecSpeed(nTmp);
+        // write new values
+        nErr = m_SestoSenso.saveParams();
+        // premanentely save to memory
+        nErr = m_SestoSenso.saveParamsToMemory();
     }
+
     else if (!strcmp(pszEvent, "on_pushButton_10_clicked")) {
         setMainDialogControlState(uiex, false);
         doCalibrate(bPressedOK);
         setMainDialogControlState(uiex, true);
+        
+        // re-read the data and set the values for min/max/current
+        m_SestoSenso.getPosition(m_nPosition);
+        snprintf(szTmp, LOG_BUFFER_SIZE, "%d", m_nPosition);
+        uiex->setPropertyString("currentPos", "text", szTmp);
+
+        m_SestoSenso.getMinPosLimit(nTmp);
+        uiex->setPropertyInt("minPos", "value", nTmp);
+
+        m_SestoSenso.getMinPosLimit(nTmp);
+        uiex->setPropertyInt("maxPos", "value", nTmp);
+
+        uiex->setPropertyInt("newPos", "value", m_nPosition);
 
     }
     return nErr;
@@ -533,6 +568,7 @@ int X2Focuser::doCalibrateialogEvents(X2GUIExchangeInterface* uiex, const char* 
                 break;
 
             case CAL_DONE:
+                m_SestoSenso.saveParamsToMemory();
                 break;
         }
     }

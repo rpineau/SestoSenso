@@ -20,10 +20,12 @@
 CSestoSenso::CSestoSenso()
 {
     m_nTargetPos = 0;
-    m_nMaxPosLimit = 0;
+    m_nMinPosLimit = 0;
     m_nMaxPosLimit = 2097152;
     m_bAbborted = false;
     m_pSerx = NULL;
+    m_bMoving = false;
+    m_dTemperature = -100.0;
 
 #ifdef SESTO_DEBUG
 #if defined(SB_WIN_BUILD)
@@ -96,6 +98,7 @@ int CSestoSenso::Connect(const char *pszPort)
         nErr = ERR_COMMNOLINK;
 
     nErr = getCurrentValues();
+    nErr |= getSpeedValues();
 
     return nErr;
 }
@@ -116,6 +119,7 @@ void CSestoSenso::Disconnect()
         m_pSerx->close();
  
 	m_bIsConnected = false;
+    m_bMoving = false;
 }
 
 #pragma mark move commands
@@ -136,7 +140,7 @@ int CSestoSenso::haltFocuser()
     }
 
     m_bAbborted = true;
-	
+    m_bMoving = false;
 	return nErr;
 }
 
@@ -148,6 +152,10 @@ int CSestoSenso::gotoPosition(int nPos)
 
 	if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
+
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
 
     if ( nPos < m_nMinPosLimit || nPos > m_nMaxPosLimit)
         return ERR_LIMITSEXCEEDED;
@@ -161,11 +169,13 @@ int CSestoSenso::gotoPosition(int nPos)
 #endif
 
     sprintf(szCmd,"#GT%d!", nPos);
-    nErr = SestoSensoCommand(szCmd, szResp, SERIAL_BUFFER_SIZE, 5); // this returns 5 results for some reason
+    nErr = SestoSensoCommand(szCmd, szResp, SERIAL_BUFFER_SIZE, 1);
     if(nErr)
         return nErr;
+    // goto return the current position
+    m_bMoving = true;
     if(!strstr(szResp, "ok")) {
-        return ERR_CMDFAILED;
+        m_nCurPos = atoi(szResp);
     }
 
     m_nTargetPos = nPos;
@@ -181,10 +191,14 @@ int CSestoSenso::moveFastInward(void)
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
 
-    // abort
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
+
     nErr = SestoSensoCommand("#FI!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
         return nErr;
+
     if(!strstr(szResp, "ok")) {
         return ERR_CMDFAILED;
     }
@@ -202,7 +216,10 @@ int CSestoSenso::moveSLowInward(void)
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
 
-    // abort
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
+
     nErr = SestoSensoCommand("#SI!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
         return nErr;
@@ -224,7 +241,10 @@ int CSestoSenso::moveFastOutward(void)
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
 
-    // abort
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
+
     nErr = SestoSensoCommand("#FO!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
         return nErr;
@@ -245,7 +265,10 @@ int CSestoSenso::moveSLowOutward(void)
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
 
-    // abort
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
+
     nErr = SestoSensoCommand("#SO!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
         return nErr;
@@ -267,6 +290,10 @@ int CSestoSenso::moveRelativeToPosision(int nSteps)
     if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
 
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
+
 #if defined SESTO_DEBUG && SESTO_DEBUG >= 2
     ltime = time(NULL);
     timestamp = asctime(localtime(&ltime));
@@ -286,20 +313,40 @@ int CSestoSenso::moveRelativeToPosision(int nSteps)
 int CSestoSenso::isGoToComplete(bool &bComplete)
 {
     int nErr = SENSO_OK;
-	
+    char szResp[SERIAL_BUFFER_SIZE];
+
+
 	if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
 
-    getPosition(m_nCurPos);
-	if(m_bAbborted) {
-		bComplete = true;
-		m_nTargetPos = m_nCurPos;
-		m_bAbborted = false;
-	}
-    else if(m_nCurPos == m_nTargetPos)
+    bComplete = false;
+
+    if(m_bAbborted) {
         bComplete = true;
-    else
-        bComplete = false;
+        m_nTargetPos = m_nCurPos;
+        m_bAbborted = false;
+    }
+    else if(m_bMoving) {
+        nErr = readResponse(szResp, SERIAL_BUFFER_SIZE);
+        if(nErr)
+            return nErr;
+        if(strstr(szResp, "ok")) {
+            m_bMoving = false;
+            bComplete = true;
+            getPosition(m_nCurPos);
+        }
+        else {
+            m_nCurPos = atoi(szResp);
+        }
+    }
+    else {
+        getPosition(m_nCurPos);
+
+        if(m_nCurPos == m_nTargetPos)
+            bComplete = true;
+        else
+            bComplete = false;
+    }
     return nErr;
 }
 
@@ -314,14 +361,17 @@ int CSestoSenso::getFirmwareVersion(char *pszVersion, int nStrMaxLen)
 	if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
 
-    if(!m_bIsConnected)
-        return NOT_CONNECTED;
+    if(m_bMoving) {
+        strncpy(pszVersion, m_szFirmwareVersion, nStrMaxLen);
+        return nErr;
+    }
 
     nErr = SestoSensoCommand("#QF!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
         return nErr;
 
     strncpy(pszVersion, szResp, nStrMaxLen);
+    strncpy(m_szFirmwareVersion, szResp, SERIAL_BUFFER_SIZE);
     return nErr;
 }
 
@@ -336,8 +386,13 @@ int CSestoSenso::getDeviceName(char *pzName, int nStrMaxLen)
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
 
-    if(!m_bIsConnected)
-        return NOT_CONNECTED;
+    if(m_bMoving)
+        return nErr;
+
+    if(m_bMoving) {
+        strncpy(pzName, m_szDeviceName, SERIAL_BUFFER_SIZE);
+        return nErr;
+    }
 
     nErr = SestoSensoCommand("#QN!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
@@ -352,6 +407,7 @@ int CSestoSenso::getDeviceName(char *pzName, int nStrMaxLen)
             return nErr;
     }
     strncpy(pzName, vNameField[0].c_str(), nStrMaxLen);
+    strncpy(m_szDeviceName, pzName, SERIAL_BUFFER_SIZE);
     return nErr;
 }
 
@@ -363,12 +419,17 @@ int CSestoSenso::getTemperature(double &dTemperature)
 	if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
 
+    if(m_bMoving) {
+        dTemperature = m_dTemperature;
+        return nErr;
+    }
     nErr = SestoSensoCommand("#QT!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
         return nErr;
 
     // convert response
     dTemperature = atof(szResp);
+    m_dTemperature = dTemperature;
 
     return nErr;
 }
@@ -380,6 +441,11 @@ int CSestoSenso::getPosition(int &nPosition)
 	
 	if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
+
+    if(m_bMoving) {
+        nPosition = m_nCurPos;
+        return nErr;
+    }
 
     nErr = SestoSensoCommand("#QP!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
@@ -400,6 +466,10 @@ int CSestoSenso::syncMotorPosition(const int &nPos)
 
 	if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
+
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
 
     snprintf(szCmd, SERIAL_BUFFER_SIZE, "#SP%d!", nPos);
     nErr = SestoSensoCommand(szCmd, szResp, SERIAL_BUFFER_SIZE);
@@ -422,6 +492,12 @@ int CSestoSenso::getMaxPosLimit(int &nLimit)
 
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
+
+    nLimit = m_nMaxPosLimit;
+
+    if(m_bMoving) {
+        return nErr;
+    }
 
     nErr = SestoSensoCommand("#QM!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
@@ -450,6 +526,10 @@ int CSestoSenso::setMaxPosLimit(const int &nLimit)
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
 
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
+
     snprintf(szCmd, SERIAL_BUFFER_SIZE, "#SM;%d!", nLimit);
     nErr = SestoSensoCommand(szCmd, szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
@@ -468,10 +548,14 @@ int CSestoSenso::getMinPosLimit(int &nLimit)
     char szResp[SERIAL_BUFFER_SIZE];
     std::vector<std::string> vFieldsData;
 
-    nLimit = m_nMinPosLimit;
-
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
+
+    nLimit = m_nMinPosLimit;
+
+    if(m_bMoving) {
+        return nErr;
+    }
 
     nErr = SestoSensoCommand("#Qm!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
@@ -500,6 +584,10 @@ int CSestoSenso::setMinPosLimit(const int &nLimit)
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
 
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
+
     snprintf(szCmd, SERIAL_BUFFER_SIZE, "#Sm;%d!", nLimit);
     nErr = SestoSensoCommand(szCmd, szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
@@ -520,6 +608,10 @@ int CSestoSenso::setCurrentPosAsMax()
 
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
+
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
 
     nErr = SestoSensoCommand("#SM!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
@@ -602,9 +694,27 @@ void CSestoSenso::setDecSpeed(const int &nValue)
     m_SensoParams.nDecSpeed = nValue;
 }
 
+int CSestoSenso::readParams(void)
+{
+    int nErr = SENSO_OK;
+
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
+
+    nErr = getCurrentValues();
+    nErr |= getSpeedValues();
+
+    return nErr;
+}
+
 int CSestoSenso::saveParams(void)
 {
     int nErr = SENSO_OK;
+
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
 
     nErr = setCurrentValues();
     nErr |= setSpeedValues();
@@ -616,6 +726,10 @@ int CSestoSenso::saveParamsToMemory(void)
 {
     int nErr = SENSO_OK;
     char szResp[SERIAL_BUFFER_SIZE];
+
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
 
     // save params to memory
     nErr = SestoSensoCommand("#PS!", szResp, SERIAL_BUFFER_SIZE);
@@ -634,6 +748,10 @@ int CSestoSenso::resetToDefault(void)
     int nErr = SENSO_OK;
     char szResp[SERIAL_BUFFER_SIZE];
 
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
+
     // reset to default
     nErr = SestoSensoCommand("#PD!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
@@ -651,6 +769,10 @@ int CSestoSenso::setLockMode(const bool &bLock)
 {
     int nErr = SENSO_OK;
     char szResp[SERIAL_BUFFER_SIZE];
+
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
 
     if(bLock){
         // set to free as we're no longer controlling the focuser.
@@ -808,8 +930,9 @@ int CSestoSenso::getCurrentValues(void)
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
 
-    if(!m_bIsConnected)
-        return NOT_CONNECTED;
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
 
     nErr = SestoSensoCommand("#GC!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
@@ -836,8 +959,10 @@ int CSestoSenso::getSpeedValues(void)
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
 
-    if(!m_bIsConnected)
-        return NOT_CONNECTED;
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
+
 
     nErr = SestoSensoCommand("#GS!", szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
@@ -860,6 +985,10 @@ int CSestoSenso::setCurrentValues(void)
     char szResp[SERIAL_BUFFER_SIZE];
     char szCmd[SERIAL_BUFFER_SIZE];
 
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
+
     snprintf(szCmd, SERIAL_BUFFER_SIZE, "#SC;%d;%d;%d;%d!", m_SensoParams.nHoldCurrent,
                                                             m_SensoParams.nRunCurrent,
                                                             m_SensoParams.nAccCurrent,
@@ -879,9 +1008,11 @@ int CSestoSenso::setSpeedValues(void)
     int nErr = SENSO_OK;
     char szResp[SERIAL_BUFFER_SIZE];
     char szCmd[SERIAL_BUFFER_SIZE];
-    //
-#pragma mark    // TODO : FIX WITH CORRECT COMMAND
-    //
+
+    if(m_bMoving) {
+        return ERR_CMD_IN_PROGRESS_FOC;
+    }
+
     snprintf(szCmd, SERIAL_BUFFER_SIZE, "#SS;%d;%d;%d!",  m_SensoParams.nAccSpeed, m_SensoParams.nRunSpeed, m_SensoParams.nDecSpeed );
     nErr = SestoSensoCommand(szCmd, szResp, SERIAL_BUFFER_SIZE);
     if(nErr)

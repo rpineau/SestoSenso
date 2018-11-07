@@ -105,6 +105,8 @@ public:
     void        getDecSpeed(int &nValue);
     void        setDecSpeed(const int &nValue);
 
+
+    int         readParams(void);
     int         saveParams(void);
     int         saveParamsToMemory(void);
     int         resetToDefault(void);
@@ -140,6 +142,9 @@ protected:
 	bool			m_bAbborted;
     bool            m_bMoving;
 
+    float           m_dTemperature;
+    char            m_szDeviceName[SERIAL_BUFFER_SIZE];
+    
     SensoParams     m_SensoParams;
 
 #ifdef SESTO_DEBUG

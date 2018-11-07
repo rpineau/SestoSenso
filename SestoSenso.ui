@@ -338,7 +338,7 @@
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
        <property name="maximum">
-        <number>4094</number>
+        <number>138</number>
        </property>
       </widget>
       <widget class="QLabel" name="label_11">
@@ -370,7 +370,7 @@
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
        <property name="maximum">
-        <number>1022</number>
+        <number>138</number>
        </property>
       </widget>
       <widget class="QLabel" name="label_12">
@@ -402,7 +402,7 @@
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
        <property name="maximum">
-        <number>4094</number>
+        <number>138</number>
        </property>
       </widget>
      </widget>
