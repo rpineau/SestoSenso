@@ -22,7 +22,7 @@
 #include "../../licensedinterfaces/serxinterface.h"
 #include "../../licensedinterfaces/loggerinterface.h"
 
-#define SESTO_DEBUG 3
+// #define SESTO_DEBUG 3
 
 #define MAX_TIMEOUT 1000
 #define SERIAL_BUFFER_SIZE 256
@@ -144,7 +144,7 @@ protected:
 
     float           m_dTemperature;
     char            m_szDeviceName[SERIAL_BUFFER_SIZE];
-    
+
     SensoParams     m_SensoParams;
 
 #ifdef SESTO_DEBUG
