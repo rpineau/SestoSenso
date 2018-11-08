@@ -460,22 +460,7 @@ int CSestoSenso::getPosition(int &nPosition)
 #endif
 
     if(m_bMoving) {
-        nPosition = m_nCurPos; // in case we get an error we can at least report the provious known position
-        nErr = readResponse(szResp, SERIAL_BUFFER_SIZE);
-        if(nErr)
-            return nErr;
-        if(!strstr(szResp, "ok")) {
-            m_nCurPos = atoi(szResp);
-            nPosition = m_nCurPos;
-        }
-        else {  // we got a ok so we're done moving, querry the position
-            nErr = SestoSensoCommand("#QP!", szResp, SERIAL_BUFFER_SIZE);
-            if(nErr)
-                return nErr;
-            // convert response
-            nPosition = atoi(szResp);
-            m_nCurPos = nPosition;
-        }
+        nPosition = m_nCurPos;
 #if defined SESTO_DEBUG && SESTO_DEBUG >= 2
         ltime = time(NULL);
         timestamp = asctime(localtime(&ltime));
