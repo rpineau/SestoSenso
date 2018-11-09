@@ -1,17 +1,4 @@
-#include <stdio.h>
-#include <string.h>
 #include "x2focuser.h"
-
-#include "../../licensedinterfaces/theskyxfacadefordriversinterface.h"
-#include "../../licensedinterfaces/sleeperinterface.h"
-#include "../../licensedinterfaces/loggerinterface.h"
-#include "../../licensedinterfaces/basiciniutilinterface.h"
-#include "../../licensedinterfaces/mutexinterface.h"
-#include "../../licensedinterfaces/basicstringinterface.h"
-#include "../../licensedinterfaces/tickcountinterface.h"
-#include "../../licensedinterfaces/serxinterface.h"
-#include "../../licensedinterfaces/sberrorx.h"
-#include "../../licensedinterfaces/serialportparams2interface.h"
 
 X2Focuser::X2Focuser(const char* pszDisplayName, 
 												const int& nInstanceIndex,
@@ -41,6 +28,7 @@ X2Focuser::X2Focuser(const char* pszDisplayName,
     if (m_pIniUtil) {
     }
 	m_SestoSenso.SetSerxPointer(m_pSerX);
+    m_SestoSenso.SetSleeperPointer(m_pSleeper);
 
 }
 

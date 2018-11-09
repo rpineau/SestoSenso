@@ -21,6 +21,9 @@
 #include "../../licensedinterfaces/sberrorx.h"
 #include "../../licensedinterfaces/serxinterface.h"
 #include "../../licensedinterfaces/loggerinterface.h"
+#include "../../licensedinterfaces/sleeperinterface.h"
+
+#include "StopWatch.h"
 
 // #define SESTO_DEBUG 3
 
@@ -50,10 +53,10 @@ public:
 
     int         Connect(const char *pszPort);
     void        Disconnect(void);
-    bool        IsConnected(void) { return m_bIsConnected; };
+    bool        IsConnected(void) { return m_bIsConnected; }
 
-    void        SetSerxPointer(SerXInterface *p) { m_pSerx = p; };
-
+    void        SetSerxPointer(SerXInterface *p) { m_pSerx = p; }
+    void        SetSleeperPointer(SleeperInterface *pSleeper) {m_pSleeper = pSleeper;}
     // move commands
     int         haltFocuser();
     int         gotoPosition(int nPos);
@@ -127,7 +130,8 @@ protected:
 
 
     SerXInterface   *m_pSerx;
-
+    SleeperInterface    *m_pSleeper;
+    
     bool            m_bDebugLog;
     bool            m_bIsConnected;
     char            m_szFirmwareVersion[SERIAL_BUFFER_SIZE];
@@ -146,6 +150,7 @@ protected:
     char            m_szDeviceName[SERIAL_BUFFER_SIZE];
 
     SensoParams     m_SensoParams;
+    CStopWatch      cmdTimer;
 
 #ifdef SESTO_DEBUG
     std::string m_sLogfilePath;
