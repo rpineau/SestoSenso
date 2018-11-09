@@ -35,7 +35,7 @@ class BasicIniUtilInterface;
 class TickCountInterface;
 
 #define DRIVER_VERSION      1.0
-#define DRIVER_MAX_STRING   256
+
 #define PARENT_KEY			"SestoSenso"
 #define CHILD_KEY_PORTNAME	"PortName"
 #define POS_LIMIT           "PosLimit"
