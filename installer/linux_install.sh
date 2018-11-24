@@ -6,9 +6,7 @@ echo "TheSkyX_Install = $TheSkyX_Install"
 if [ ! -f "$TheSkyX_Install" ]; then
     echo TheSkyXInstallPath.txt not found
     TheSkyX_Path=`/usr/bin/find ~/ -maxdepth 3 -name TheSkyX`
-    if [ -d "$TheSkyX_Path" ]; then
-		TheSkyX_Path="${TheSkyX_Path}/Contents"
-    else
+    if [ ! -d "$TheSkyX_Path" ]; then
 	   echo TheSkyX application was not found.
     	exit 1
 	 fi
@@ -24,18 +22,24 @@ if [ ! -d "$TheSkyX_Path" ]; then
     exit 1
 fi
 
+if [ -d "$TheSkyX_Path/Resources/Common/PlugIns64" ]; then
+	PLUGINS_DIR="PlugIns64"
+else
+	PLUGINS_DIR="PlugIns"
+fi
+
 cp "./focuserlist PrimaLuceLab.txt" "$TheSkyX_Path/Resources/Common/Miscellaneous Files/"
-cp "./SestoSenso.ui" "$TheSkyX_Path/Resources/Common/PlugIns/FocuserPlugIns/"
-cp "./SestoCalibrate.ui" "$TheSkyX_Path/Resources/Common/PlugIns/FocuserPlugIns/"
-cp "./PrimaLuceLab.png" "$TheSkyX_Path/Resources/Common/PlugIns/FocuserPlugIns/"
-cp "./libSestoSenso.so" "$TheSkyX_Path/Resources/Common/PlugIns/FocuserPlugIns/"
+cp "./SestoSenso.ui" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/"
+cp "./SestoCalibrate.ui" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/"
+cp "./PrimaLuceLab.png" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/"
+cp "./libSestoSenso.so" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/"
 
 app_owner=`/usr/bin/stat -c "%u" "$TheSkyX_Path" | xargs id -n -u`
 if [ ! -z "$app_owner" ]; then
 	chown $app_owner "$TheSkyX_Path/Resources/Common/Miscellaneous Files/focuserlist PrimaLuceLab.txt"
-	chown $app_owner "$TheSkyX_Path/Resources/Common/PlugIns/FocuserPlugIns/SestoSenso.ui"
-	chown $app_owner "$TheSkyX_Path/Resources/Common/PlugIns/FocuserPlugIns/SestoCalibrate.ui"
-	chown $app_owner "$TheSkyX_Path/Resources/Common/PlugIns/FocuserPlugIns/PrimaLuceLab.png"
-	chown $app_owner "$TheSkyX_Path/Resources/Common/PlugIns/FocuserPlugIns/libSestoSenso.so"
+	chown $app_owner "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/SestoSenso.ui"
+	chown $app_owner "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/SestoCalibrate.ui"
+	chown $app_owner "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/PrimaLuceLab.png"
+	chown $app_owner "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/libSestoSenso.so"
 fi
-chmod  755 "$TheSkyX_Path/Resources/Common/PlugIns/FocuserPlugIns/libSestoSenso.so"
+chmod  755 "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/libSestoSenso.so"
