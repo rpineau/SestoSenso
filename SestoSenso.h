@@ -137,8 +137,6 @@ protected:
     char            m_szFirmwareVersion[SERIAL_BUFFER_SIZE];
     char            m_szLogBuffer[LOG_BUFFER_SIZE];
 
-    std::vector<std::string>    m_svParsedRespForA;
-
     int             m_nCurPos;
     int             m_nTargetPos;
     int             m_nMinPosLimit;
