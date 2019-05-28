@@ -294,7 +294,7 @@ void X2Focuser::uiEvent(X2GUIExchangeInterface* uiex, const char* pszEvent)
             doMainDialogEvents(uiex, pszEvent);
             break;
         case CALIBRATE:
-            doCalibrateialogEvents(uiex, pszEvent);
+            doCalibrateDialogEvents(uiex, pszEvent);
             break;
     }
 
@@ -515,7 +515,7 @@ int X2Focuser::doCalibrate(bool bPressedOK)
     return nErr;
 }
 
-int X2Focuser::doCalibrateialogEvents(X2GUIExchangeInterface* uiex, const char* pszEvent)
+int X2Focuser::doCalibrateDialogEvents(X2GUIExchangeInterface* uiex, const char* pszEvent)
 {
     int nErr = SB_OK;
 

@@ -170,7 +170,7 @@ private:
     void                                    portNameOnToCharPtr(char* pszPort, const int& nMaxSize) const;
 
     int                                     doMainDialogEvents(X2GUIExchangeInterface* uiex, const char* pszEvent);
-    int                                     doCalibrateialogEvents(X2GUIExchangeInterface* uiex, const char* pszEvent);
+    int                                     doCalibrateDialogEvents(X2GUIExchangeInterface* uiex, const char* pszEvent);
     void                                    setMainDialogControlState(X2GUIExchangeInterface* uiex, bool enabeled);
     int                                     doCalibrate(bool bPressedOK);
 
