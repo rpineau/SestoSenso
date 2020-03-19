@@ -29,12 +29,20 @@ echo "Installing in $PLUGINS_DIR/FocuserPlugIns/"
 
 cp "/tmp/SestoSenso_X2/focuserlist PrimaLuceLab.txt" "$TheSkyX_Path/Resources/Common/Miscellaneous Files/"
 if [ "$?" -ne "0" ]; then exit 1; fi
+
+rm -f "$PLUGINS_DIR/FocuserPlugIns/SestoSenso.ui"
 cp "/tmp/SestoSenso_X2/SestoSenso.ui" "$PLUGINS_DIR/FocuserPlugIns/"
 if [ "$?" -ne "0" ]; then exit 1; fi
+
+rm -f "$PLUGINS_DIR/FocuserPlugIns/SestoCalibrate.ui"
 cp "/tmp/SestoSenso_X2/SestoCalibrate.ui" "$PLUGINS_DIR/FocuserPlugIns/"
 if [ "$?" -ne "0" ]; then exit 1; fi
+
+rm -f "$PLUGINS_DIR/FocuserPlugIns/PrimaLuceLab.png"
 cp "/tmp/SestoSenso_X2/PrimaLuceLab.png" "$PLUGINS_DIR/FocuserPlugIns/"
 if [ "$?" -ne "0" ]; then exit 1; fi
+
+rm -f "$PLUGINS_DIR/FocuserPlugIns/libSestoSenso.dylib"
 cp "/tmp/SestoSenso_X2/libSestoSenso.dylib" "$PLUGINS_DIR/FocuserPlugIns/"
 if [ "$?" -ne "0" ]; then exit 1; fi
 
