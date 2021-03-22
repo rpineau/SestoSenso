@@ -54,7 +54,7 @@ Source: "SestoSenso.ui";                                    DestDir: "{app}\Plug
 Source: "SestoCalibrate.ui";                                DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion
 Source: "PrimaLuceLab.png";                                 DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion
 ; 64 bits
-Source: "libSestoSenso\x64\Release\libSestoSenso.dll";      DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion
+Source: "libSestoSenso\x64\Release\libSestoSenso.dll";      DestDir: "{app}\Plugins64\FocuserPlugins"; Flags: ignoreversion
 Source: "SestoSenso.ui";                                    DestDir: "{app}\Plugins64\FocuserPlugins"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{app}\Plugins64\FocuserPlugins'))
 Source: "SestoCalibrate.ui";                                DestDir: "{app}\Plugins64\FocuserPlugins"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{app}\Plugins64\FocuserPlugins'))
 Source: "PrimaLuceLab.png";                                 DestDir: "{app}\Plugins64\FocuserPlugins"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{app}\Plugins64\FocuserPlugins'))
